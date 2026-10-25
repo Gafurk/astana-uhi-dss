@@ -1,3 +1,0 @@
-rows total 4449617
-share of LST variance between acquisitions 0.662
-rows dropped (NaN features) per config {'main': 215, 's2_check': 1550178, 'same_scene': 1354}

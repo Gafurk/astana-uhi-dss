@@ -159,7 +159,7 @@ def main():
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     import matplotlib.ticker
-    plt.rcParams.update({"font.size": 8, "font.family": "serif", "axes.spines.top": False,
+    plt.rcParams.update({"font.size": 8, "font.family": "STIXGeneral", "mathtext.fontset": "stix", "axes.spines.top": False,
                          "axes.spines.right": False, "pdf.fonttype": 42})
     C = {"botanic": "#2a7f62", "greenline": "#3b6fb6"}
     PC = {0: "#b35806", 1: "#1b7837"}
@@ -178,9 +178,9 @@ def main():
             p = P[(P.site == site) & (P.period == lab)].sort_values("dist_m")
             a1.errorbar(p.dist_m, p.dLST_ring_minus_site, yerr=[p.dLST_ring_minus_site - p.ci_lo,
                         p.ci_hi - p.dLST_ring_minus_site], fmt="o-", ms=3.5, lw=1.2, capsize=2,
-                        color=PC[k], label=lab)
+                        color=PC[k], label=("before" if k == 0 else "after") + " (%d–%s)" % (PERIODS[site][lab][0], str(PERIODS[site][lab][1])[2:]))
         a1.set_xscale("log"); a1.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter()); a1.set_xticks([30, 90, 180, 360, 720]); a1.set_xticklabels(["30", "90", "180", "360", "720"])
-        a1.set_ylabel("LST(ring) − LST(site), °C"); a1.legend(frameon=False, fontsize=7)
+        a1.set_ylabel("LST(ring) − LST(site), °C"); a1.legend(frameon=False, fontsize=7, **({"loc": "center right", "bbox_to_anchor": (1.0, 0.64)} if site == "botanic" else {"loc": "upper left"}))
         s = s2y[s2y.obj == site]
         if "site" in s:
             a2.plot(s.year, s["site"], "s-", ms=3.5, color=C[site], label="S2 10 m, site")
