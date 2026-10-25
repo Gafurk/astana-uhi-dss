@@ -45,9 +45,9 @@ python scripts/osm_to_rasters.py          # OSM distance layers on the 30 m grid
 python scripts/check_grid.py              # checks size, CRS and origin of every exported raster
 python scripts/build_dataset.py           # joins samples, static, OSM and S2 layers -> parquet + feature_groups.json
 python scripts/peek_dataset.py            # quick summaries of the parquet
-python scripts/train_models.py data/astana_dataset.parquet data/feature_groups.json out/results \
+python scripts/train_models.py out/astana_dataset.parquet out/feature_groups.json out/results \
        --configs main s2_check same_scene --seed 42
-python scripts/train_models.py data/astana_dataset.parquet data/feature_groups.json out/results_s2 \
+python scripts/train_models.py out/astana_dataset.parquet out/feature_groups.json out/results_s2 \
        --configs main_2019 s2_check --seed 42
 python scripts/case_analysis.py data/astana_case_sites.csv out/case --min-valid 0.8 --boot 5000 --seed 42
 python scripts/case_recheck.py data/astana_case_recheck_lst.csv data/astana_case_recheck_s2.csv out/case_recheck \
