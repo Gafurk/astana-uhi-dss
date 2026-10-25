@@ -163,7 +163,7 @@ def main():
                          "axes.spines.right": False, "pdf.fonttype": 42})
     C = {"botanic": "#2a7f62", "greenline": "#3b6fb6"}
     PC = {0: "#b35806", 1: "#1b7837"}
-    fig, ax = plt.subplots(2, 3, figsize=(7.16, 4.4))
+    fig, ax = plt.subplots(2, 3, figsize=(7.16, 4.6))
     for i, site in enumerate(PERIODS):
         g = A[A.site_name == site]
         a0, a1, a2 = ax[i]
@@ -188,10 +188,15 @@ def main():
             a2.plot(s.year, s["ring_0_60"], "s--", ms=3.5, color="#999", label="S2 10 m, ring 0–60 m")
         l = ly[ly.site_name == site]
         a2.plot(l.year, l.ndvi_site, "o:", ms=3, color=C[site], alpha=0.7, label="Landsat 30 m, site")
-        a2.set_ylabel("Summer NDVI"); a2.legend(frameon=False, fontsize=6)
+        a2.set_ylabel("Summer NDVI")
         if i == 1:
             a0.set_xlabel("Year"); a1.set_xlabel("Distance from edge, m"); a2.set_xlabel("Year")
-    fig.tight_layout()
+    from matplotlib.lines import Line2D
+    hl = [Line2D([], [], color="#444", marker="s", ms=3.5, ls="-", label="Sentinel-2 10 m, site"),
+          Line2D([], [], color="#999", marker="s", ms=3.5, ls="--", label="Sentinel-2 10 m, ring 0–60 m"),
+          Line2D([], [], color="#444", marker="o", ms=3, ls=":", label="Landsat 30 m, site")]
+    fig.tight_layout(rect=(0, 0.05, 1, 1))
+    fig.legend(handles=hl, loc="lower right", ncol=3, frameon=False, fontsize=7, bbox_to_anchor=(0.99, 0.0))
     fig.savefig(f"{a.out}/fig_case_recheck.pdf"); fig.savefig(f"{a.out}/fig_case_recheck.png", dpi=200)
 
     with open(f"{a.out}/notes.txt", "w") as f:
