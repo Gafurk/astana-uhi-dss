@@ -1,0 +1,11 @@
+numpy
+pandas
+pyarrow
+rasterio
+geopandas
+pyogrio
+pyproj
+scipy
+scikit-learn
+xgboost
+matplotlib

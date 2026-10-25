@@ -1,0 +1,3 @@
+rows total 4449617
+share of LST variance between acquisitions 0.662
+rows dropped (NaN features) per config {'s2_check': 1550178, 'main_2019': 215}
