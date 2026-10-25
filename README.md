@@ -53,9 +53,12 @@ python scripts/case_analysis.py data/astana_case_sites.csv out/case --min-valid 
 python scripts/make_figures.py results/main results/main/figures out/results/pred_obs_sample.parquet
 python scripts/case_recheck.py data/astana_case_recheck_lst.csv data/astana_case_recheck_s2.csv out/case_recheck \
        --min-valid 0.8 --boot 5000 --seed 42
+python scripts/case_extra_tests.py results/case_recheck/recheck_by_acq.csv results/case_recheck --boot 5000 --seed 42
 ```
 
-Each script prints its options with `-h`.
+Each script prints its options with `-h`. `case_extra_tests.py` computes the additional RQ4 statistics reported in the article (one-sample Wilcoxon, Theil–Sen slope, Mann–Whitney test of 2026 against 2021–2025, Spearman check, Holm correction and the bootstrap by year).
+
+Notes: scripts 02 and 03 of an earlier version were superseded by `07_scene_samples.js` and removed, so the numbering jumps from 01 to 04. Code comments are partly in Russian; section numbers mentioned in them refer to an earlier draft of the article.
 
 ## Reproducibility
 

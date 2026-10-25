@@ -1,0 +1,49 @@
+{
+  "python": "3.9.6",
+  "platform": "macOS-27.0.1-arm64-arm-64bit",
+  "processor": "arm",
+  "seed": 42,
+  "args": {
+    "parquet": "out/astana_dataset.parquet",
+    "groups": "out/feature_groups.json",
+    "out": "out/results",
+    "folds": 5,
+    "test_years": [
+      2024,
+      2025
+    ],
+    "models": [
+      "scene_mean",
+      "linear",
+      "rf",
+      "xgb",
+      "svr"
+    ],
+    "configs": [
+      "main",
+      "s2_check",
+      "same_scene"
+    ],
+    "max_train": 300000,
+    "max_train_svr": 20000,
+    "max_test": 150000,
+    "boot": 1000,
+    "seed": 42,
+    "quick": false
+  },
+  "runtime_min": 26.2,
+  "best_model_main_spatial": "rf",
+  "share_variance_between_acquisitions": 0.6617252826690674,
+  "rows_dropped_nan_features": {
+    "main": 215,
+    "s2_check": 1550178,
+    "same_scene": 1354
+  },
+  "numpy": "2.0.2",
+  "pandas": "2.3.3",
+  "sklearn": "1.6.1",
+  "xgboost": "2.1.4",
+  "scipy": "1.13.1",
+  "matplotlib": "3.9.4",
+  "pyarrow": "21.0.0"
+}
