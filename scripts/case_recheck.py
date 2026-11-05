@@ -159,11 +159,11 @@ def main():
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     import matplotlib.ticker
-    plt.rcParams.update({"font.size": 8, "font.family": "STIXGeneral", "mathtext.fontset": "stix", "axes.spines.top": False,
+    plt.rcParams.update({"font.size": 9.5, "font.family": "STIXGeneral", "mathtext.fontset": "stix", "axes.spines.top": False,
                          "axes.spines.right": False, "pdf.fonttype": 42})
     C = {"botanic": "#2a7f62", "greenline": "#3b6fb6"}
     PC = {0: "#b35806", 1: "#1b7837"}
-    fig, ax = plt.subplots(2, 3, figsize=(7.16, 4.6))
+    fig, ax = plt.subplots(2, 3, figsize=(7.16, 5.0))
     for i, site in enumerate(PERIODS):
         g = A[A.site_name == site]
         a0, a1, a2 = ax[i]
@@ -172,7 +172,7 @@ def main():
         yr = g.groupby("year").LCI.mean()
         a0.plot(yr.index, yr.values, "-", color="#222", lw=1.2)
         a0.set_ylabel("LCI, °C")
-        a0.set_title(LABELS[site], fontsize=9, loc="left")
+        a0.set_title(LABELS[site], fontsize=10, loc="left")
         a1.axhline(0, color="#888", lw=0.8)
         for k, lab in enumerate(PERIODS[site]):
             p = P[(P.site == site) & (P.period == lab)].sort_values("dist_m")
@@ -180,7 +180,7 @@ def main():
                         p.ci_hi - p.dLST_ring_minus_site], fmt="o-", ms=3.5, lw=1.2, capsize=2,
                         color=PC[k], label=("before" if k == 0 else "after") + " (%d–%s)" % (PERIODS[site][lab][0], str(PERIODS[site][lab][1])[2:]))
         a1.set_xscale("log"); a1.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter()); a1.set_xticks([30, 90, 180, 360, 720]); a1.set_xticklabels(["30", "90", "180", "360", "720"])
-        a1.set_ylabel("LST(ring) − LST(site), °C"); a1.legend(frameon=False, fontsize=7, **({"loc": "center right", "bbox_to_anchor": (1.0, 0.64)} if site == "botanic" else {"loc": "upper left"}))
+        a1.set_ylabel("LST(ring) − LST(site), °C"); a1.legend(frameon=False, fontsize=8.5, **({"loc": "center right", "bbox_to_anchor": (1.0, 0.64)} if site == "botanic" else {"loc": "upper left"}))
         s = s2y[s2y.obj == site]
         if "site" in s:
             a2.plot(s.year, s["site"], "s-", ms=3.5, color=C[site], label="S2 10 m, site")
@@ -196,7 +196,7 @@ def main():
           Line2D([], [], color="#999", marker="s", ms=3.5, ls="--", label="Sentinel-2 10 m, ring 0–60 m"),
           Line2D([], [], color="#444", marker="o", ms=3, ls=":", label="Landsat 30 m, site")]
     fig.tight_layout(rect=(0, 0.05, 1, 1))
-    fig.legend(handles=hl, loc="lower right", ncol=3, frameon=False, fontsize=7, bbox_to_anchor=(0.99, 0.0))
+    fig.legend(handles=hl, loc="lower right", ncol=3, frameon=False, fontsize=9, bbox_to_anchor=(0.99, 0.0))
     fig.savefig(f"{a.out}/fig_case_recheck.pdf"); fig.savefig(f"{a.out}/fig_case_recheck.png", dpi=200)
 
     with open(f"{a.out}/notes.txt", "w") as f:
