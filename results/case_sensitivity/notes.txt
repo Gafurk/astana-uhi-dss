@@ -1,0 +1,12 @@
+botanic: 88 scenes in total, 29 passed the filter
+greenline: 88 scenes in total, 28 passed the filter
+greenline_zone: 88 scenes in total, 28 passed the filter
+{
+ "min_valid": 0.8,
+ "stat": "lst_median",
+ "boot": 5000,
+ "seed": 42,
+ "numpy": "2.0.2",
+ "pandas": "2.3.3",
+ "scipy": "1.13.1"
+}

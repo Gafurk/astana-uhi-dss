@@ -1,0 +1,30 @@
+botanic: scenes with site 47, with distant control 44, with LCI 45
+greenline: scenes with site 46, with distant control 38, with LCI 45
+{
+ "min_valid": 0.8,
+ "stat": "lst_median",
+ "boot": 5000,
+ "seed": 42,
+ "periods": {
+  "botanic": {
+   "construction": [
+    2013,
+    2017
+   ],
+   "mature": [
+    2021,
+    2026
+   ]
+  },
+  "greenline": {
+   "before": [
+    2013,
+    2019
+   ],
+   "after": [
+    2021,
+    2026
+   ]
+  }
+ }
+}

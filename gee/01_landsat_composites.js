@@ -1,31 +1,31 @@
 // =====================================================================================
 // 01_landsat_composites.js   (Google Earth Engine Code Editor)
-// Летние (июнь-август) композиты Landsat 8 и 9 для Астаны, по одному файлу на сенсор и год.
+// Summer (June-August) Landsat 8 and 9 composites for Astana, one file per sensor and year.
 //
-// Файл на выходе: astana_L8_2019_JJA.tif и т.д., 5 каналов в таком порядке:
-//   1 LST_C   температура поверхности, °C
+// Output file: astana_L8_2019_JJA.tif etc., 5 bands in this order:
+//   1 LST_C   land surface temperature, °C
 //   2 NDVI    (NIR - Red) / (NIR + Red)
 //   3 NDBI    (SWIR1 - NIR) / (SWIR1 + NIR)
-//   4 ALBEDO  широкополосное альбедо по Liang (2001)
-//   5 N_OBS   сколько ясных наблюдений дало значение пикселя
+//   4 ALBEDO  broadband albedo, Liang (2001) coefficients as applied to Landsat 9 by Barletta et al. (2023)
+//   5 N_OBS   number of clear observations behind the pixel value
 //
-// ВАЖНО по фидбэку: NDVI, NDBI и ALBEDO здесь взяты из ТОЙ ЖЕ сцены, что и LST.
-// В модели это группа признаков "C" (та же сцена), её нельзя смешивать с остальными без
-// отдельной оценки R2 (см. гид, раздел про утечку).
-// Landsat 7 по умолчанию выключен: для картографии он не нужен.
+// NOTE: NDVI, NDBI and ALBEDO here come from the SAME scene as LST.
+// In the model this is predictor group "C" (same scene); it must not be mixed with the others without
+// a separate estimate of the R2 inflation (see the article, predictor source).
+// Landsat 7 is off by default: it is not needed for mapping.
 //
-// Как запускать: вставить в Code Editor -> Run -> справа вкладка Tasks -> у каждой задачи Run.
+// How to run: paste into the Code Editor -> Run -> Tasks tab on the right -> Run for each task.
 //
-// Правки после проверки тестового файла (L8 2024):
-//   - NDVI/NDBI вне [-1, 1] и альбедо вне [0, 1] маскируются (тёмные поверхности с отрицательной SR
-//     давали значения до 112). LST эта маска не трогает. Порядок каналов прежний.
-//   - Регион экспорта сдвинут внутрь окна на 10 м: иначе GEE добавлял пустые строку и столбец (2001x2401).
-//     Сетка не меняется: её задаёт crsTransform. Ожидаемый размер файла 2000 x 2400.
-//   - Индексы маскируются там, где нет LST той же сцены (в тесте 2024: 144 543 пикселя с индексами
-//     без LST в юго-западной части окна). Теперь N_OBS описывает все 4 канала.
+// Changes after checking the test file (L8 2024):
+//   - NDVI/NDBI outside [-1, 1] and albedo outside [0, 1] are masked (dark surfaces with negative SR
+//     gave values up to 112). LST is not affected by this mask. The band order is unchanged.
+//   - The export region is shrunk by 10 m inside the window: otherwise GEE added an empty row and column (2001x2401).
+//     The grid does not change: it is set by crsTransform. Expected file size 2000 x 2400.
+//   - Indices are masked where the same scene has no LST (in the 2024 test: 144,543 pixels with indices
+//     but no LST in the south-west of the window). N_OBS now describes all 4 bands.
 // =====================================================================================
 
-// ============ ОБЩИЕ НАСТРОЙКИ (одинаковые во всех скриптах, не меняй) ============
+// ============ COMMON SETTINGS (identical in all scripts, do not change) ============
 var CRS = 'EPSG:32642';
 var XMIN = 642000, XMAX = 702000, YMIN = 5634000, YMAX = 5706000;
 var FOLDER = 'astana_uhi';
@@ -33,11 +33,11 @@ var AOI = ee.Geometry.Rectangle([XMIN, YMIN, XMAX, YMAX], CRS, false);
 function grid(res) { return [res, 0, XMIN, 0, -res, YMAX]; }
 // ==================================================================================
 
-var INCLUDE_L7 = false;   // true только если ты обосновал роль L7 в Methods
-var MAX_SCENE_CLOUD = 10; // процентов, фильтр по сцене (как в Methods)
-var START_EXPORT = false; // false: только таблица числа сцен в консоль; true: создать задачи экспорта
+var INCLUDE_L7 = false;   // true only if the role of L7 is justified in the Methods
+var MAX_SCENE_CLOUD = 10; // per cent, scene-level filter (as in the Methods)
+var START_EXPORT = false; // false: only print the scene counts to the console; true: create export tasks
 
-// Регион экспорта на 10 м внутри окна, чтобы файл был ровно 2000 x 2400 (сетку задаёт grid(30))
+// Export region 10 m inside the window, so that the file is exactly 2000 x 2400 (the grid is set by grid(30))
 var EXPORT_REGION = ee.Geometry.Rectangle([XMIN + 10, YMIN + 10, XMAX - 10, YMAX - 10], CRS, false);
 
 var SENSORS = [
@@ -53,7 +53,7 @@ if (INCLUDE_L7) {
 
 function makePrep(s) {
   return function (img) {
-    // QA_PIXEL: биты 1 (dilated cloud), 2 (cirrus), 3 (cloud), 4 (shadow), 5 (snow) должны быть 0
+    // QA_PIXEL: bits 1 (dilated cloud), 2 (cirrus), 3 (cloud), 4 (shadow), 5 (snow) must be 0
     var clear = img.select('QA_PIXEL').bitwiseAnd(0x3E).eq(0);
     // Collection 2 Level-2: SR = 0.0000275*DN - 0.2 ; ST(K) = 0.00341802*DN + 149.0
     var sr = img.select([s.blue, s.red, s.nir, s.swir1, s.swir2]).multiply(0.0000275).add(-0.2);
@@ -65,12 +65,12 @@ function makePrep(s) {
     // Liang (2001): 0.356*B + 0.130*R + 0.373*NIR + 0.085*SWIR1 + 0.072*SWIR2 - 0.0018
     var albedo = b.multiply(0.356).add(r.multiply(0.130)).add(n.multiply(0.373))
                   .add(s1.multiply(0.085)).add(s2.multiply(0.072)).add(-0.0018).rename('ALBEDO');
-    // Индексы вне физического диапазона (тёмные поверхности с отрицательной SR) убираем, LST не трогаем
+    // Indices outside the physical range (dark surfaces with negative SR) are removed; LST is left as is
     ndvi = ndvi.updateMask(ndvi.abs().lte(1));
     ndbi = ndbi.updateMask(ndbi.abs().lte(1));
     albedo = albedo.updateMask(albedo.gte(0).and(albedo.lte(1)));
-    // Индексы оставляем только там, где есть LST этой же сцены: у теплового канала (ST) своё покрытие,
-    // и без этого медиана индексов шла по большему числу сцен, чем LST (группа C была бы не «та же сцена»).
+    // Indices are kept only where the same scene has LST: the thermal band (ST) has its own coverage,
+    // and without this the index median used more scenes than LST (group C would not be the "same scene").
     var valid = clear.and(lst.mask());
     return lst.addBands(ndvi).addBands(ndbi).addBands(albedo).updateMask(valid)
               .copyProperties(img, ['system:time_start']);
@@ -95,8 +95,8 @@ SENSORS.forEach(function (s) {
       var name = 'astana_' + s.id + '_' + year + '_JJA';
 
       raw.size().evaluate(function (n) {
-        print(name + ': сцен = ' + n);
-        if (n === 0) { print('  -> пропущено, нет сцен'); return; }
+        print(name + ': scenes = ' + n);
+        if (n === 0) { print('  -> skipped, no scenes'); return; }
         if (!START_EXPORT) { return; }
         Export.image.toDrive({
           image: composite,
@@ -114,7 +114,7 @@ SENSORS.forEach(function (s) {
   }
 });
 
-// Для быстрого просмотра на карте (последний год L8):
+// For a quick look on the map (last L8 year):
 var preview = collectionFor(SENSORS[0], 2024).map(makePrep(SENSORS[0])).median().clip(AOI);
 Map.setCenter(71.43, 51.13, 10);
 Map.addLayer(preview.select('NDVI'), {min: 0, max: 0.8, palette: ['brown', 'yellow', 'green']}, 'NDVI 2024 L8', false);

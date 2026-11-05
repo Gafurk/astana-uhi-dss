@@ -1,79 +1,131 @@
 # Astana UHI-DSS
 
-Code for the diploma project "Designing a GIS-Based Decision Support System for Urban Heat Island Analysis Using Big Data" (Astana IT University). The repository contains the Google Earth Engine scripts that build the dataset, the Python scripts that assemble it and train the models, and the analysis of two greening sites in Astana.
+Code and results for the article *Designing a GIS-Based Decision Support System for Urban Heat Island Analysis Using Big Data* (Gafur Khussanbayev, Astana IT University).
 
-## Study design in short
+The study models summer land surface temperature (LST) over Astana, Kazakhstan, from open satellite data and tests the assumption behind the scenario layer of the planned decision support system with a before-and-after analysis of two greening projects. This repository holds:
 
-The study area is Astana on a 30 m grid in EPSG:32642 (origin 642000 E, 5706000 N, 2000 × 2400 pixels). MODIS products use the matching 1 km grid (60 × 72). The modelling target is the land surface temperature anomaly within each Landsat 8/9 acquisition (pixel LST minus the acquisition median), June to August 2013–2025. Spectral predictors (NDVI, NDBI, albedo) come from leave-one-out composites built from the other acquisitions of the same summer, so the predictors never share a scene with the target. Models are evaluated with spatial block cross-validation (4 × 4 km blocks, 5 folds, 2013–2023) and a temporal hold-out (2024–2025).
+- the Google Earth Engine scripts that export the satellite and ancillary layers;
+- the Python scripts that build the dataset, train and evaluate the models, and run the greening analysis;
+- the result tables and figures reported in the article.
+
+## Study design in brief
+
+| | |
+|---|---|
+| Area | 60 × 72 km window around Astana, 30 m grid, EPSG:32642 (origin 642000 E, 5706000 N; 2000 × 2400 pixels) |
+| Period | June–August 2013–2025 (greening analysis: 2013–2026) |
+| Target | LST anomaly within each Landsat 8/9 acquisition (pixel LST minus the acquisition median) |
+| Predictors | NDVI, NDBI and albedo from leave-one-out summer composites that exclude the target scene; elevation; population density; distance to water and to green space |
+| Models | random forest, XGBoost, SVR, plus two baselines (acquisition mean, linear regression) |
+| Validation | spatial block cross-validation (4 × 4 km blocks, 5 folds, 2013–2023) and a temporal hold-out (2024–2025) |
+| Greening sites | Botanical Garden and GreenLine boulevard, compared with 0–960 m rings and distant controls |
 
 ## Repository layout
 
 ```
-gee/        Google Earth Engine Code Editor scripts (JavaScript)
-scripts/    Python scripts, run in the order listed below
-results/    small result tables and figures used in the article
-requirements.txt
+gee/                    Google Earth Engine Code Editor scripts (JavaScript), run in order 01-09
+scripts/                Python scripts, run in order 01-08
+  tools/                helper for inspecting the dataset
+data/case_study/        input tables of the greening analysis (exported by gee/08 and gee/09)
+results/
+  modelling/            main model run: metrics, tests, importance, errors (RQ1-RQ3)
+  sentinel2_check/      Sentinel-2 vs Landsat predictors, 2019-2023 records (RQ2)
+  case_study/           greening analysis with rings and distant controls (RQ4)
+  case_sensitivity/     greening sensitivity analysis: distant controls only, stricter cloud filter
+figures/                the four figures of the article
+  supplementary/        additional diagnostic figures
+requirements.txt        package list
 requirements-lock.txt   exact package versions of the run reported in the article
+CITATION.cff            citation metadata
 ```
 
-Raw rasters, the sampled CSVs and the final parquet file are not stored here because of their size. See "Data" below. The small case-study input tables are included in `results/case_inputs/`, so the case-study analysis can be rerun from this repository alone.
+## Where the article's tables and figures come from
 
-## Pipeline
+| Article | File(s) |
+|---|---|
+| Table I (dataset) | `results/modelling/dataset_summary.csv`, `split_sizes.csv`, `dataset_by_year.csv`, `notes.txt` |
+| Table II (model performance) | `results/modelling/metrics_summary.csv`, `metrics_folds.csv`, `tests.csv` |
+| Table III, top (same scene vs composite) | `results/modelling/tests.csv`, `inflation.csv` |
+| Table III, bottom (Sentinel-2 vs Landsat) | `results/sentinel2_check/metrics_summary.csv`, `tests.csv` |
+| Table IV (greening sites) | `results/case_study/case_tests.csv`, `case_period_summary.csv`, `case_extra_tests.csv`, `case_year_bootstrap.csv` |
+| Fig. 1 (anomaly classes) | `figures/fig_anomaly_classes.pdf`; counts in `results/modelling/confusion_matrix_counts.csv` |
+| Fig. 2 (predictor importance) | `figures/fig_shap.pdf`; `results/modelling/shap_importance.csv`, `permutation_importance.csv` |
+| Fig. 3 (block bias) | `figures/fig_block_bias.pdf`; `results/modelling/residuals_by_block.csv` |
+| Fig. 4 (greening sites) | `figures/fig_case_study.pdf`; `results/case_study/case_by_acq.csv`, `case_profile.csv`, `case_s2_ndvi_by_year.csv` |
+| Error analysis by LCZ and pixel group | `results/modelling/errors_by_group.csv` |
+| Greening sensitivity analysis | `results/case_sensitivity/` |
 
-Earth Engine (paste each script into the Code Editor, check the settings block at the top, set `START_EXPORT = true` only when the preview looks right):
+## Running the pipeline
+
+### 1. Google Earth Engine
+
+Paste each script into the [Earth Engine Code Editor](https://code.earthengine.google.com/). Check the settings block at the top, run it once to preview, and set `START_EXPORT = true` only when the preview looks right. Exports go to Google Drive. An Earth Engine account is required, and the asset paths in the settings blocks must point to your own project.
 
 | Script | Output |
 |---|---|
-| `01_landsat_composites.js` | seasonal Landsat composites (LST, NDVI, NDBI, MNDWI, albedo) for maps |
-| `04_sentinel2_composites.js` | Sentinel-2 NDVI/NDBI composites, 2019–2025 |
-| `05_modis_jja.js` | MODIS Terra/Aqua day/night summer LST, 4 bands per year |
-| `06_static_layers.js` | WorldCover, DEM, GHSL, LCZ on the 30 m grid |
-| `07a_sample_points.js` | 100,000 stratified sample points (seed 42), saved as an asset |
-| `07_scene_samples.js` | step 1: acquisition table asset; step 2: per-acquisition samples, one CSV per year |
-| `08_modis_daily_city.js` | daily city-mean MODIS LST |
-| `09_case_sites.js` | first case-study export: per-acquisition LST and NDVI for the Botanical Garden, GreenLine and rule-based control areas (2013–2025) |
-| `10_case_recheck.js` | main case-study export (2013–2026): site, rings 0–960 m around each site and distant controls per acquisition, plus yearly Sentinel-2 NDVI |
+| `01_landsat_composites.js` | seasonal Landsat composites (LST, NDVI, NDBI, albedo) for maps |
+| `02_sentinel2_composites.js` | Sentinel-2 NDVI/NDBI composites, 2019–2025 |
+| `03_modis_jja.js` | MODIS Terra/Aqua day and night summer LST, 4 bands per year |
+| `04_static_layers.js` | WorldCover, DEM, GHSL population and building height, global LCZ map on the 30 m grid |
+| `05_sample_points.js` | 100,000 stratified sample points (seed 42), saved as an asset; run once |
+| `06_scene_samples.js` | step 1: acquisition table asset; step 2: per-acquisition samples, one CSV per year |
+| `07_modis_daily_city.js` | daily city-mean MODIS LST, used to flag unrepresentative scenes |
+| `08_case_sites.js` | first greening export: sites and distant controls, 2013–2025 (sensitivity analysis) |
+| `09_case_rings.js` | main greening export: sites, 0–960 m rings and distant controls, 2013–2026, plus yearly Sentinel-2 NDVI |
 
-Python (from the repository root, inside a virtual environment):
+### 2. Python
+
+From the repository root:
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-lock.txt        # or requirements.txt for current versions
 
-python scripts/osm_to_rasters.py          # OSM distance layers on the 30 m grid
-python scripts/check_grid.py              # checks size, CRS and origin of every exported raster
-python scripts/build_dataset.py           # joins samples, static, OSM and S2 layers -> parquet + feature_groups.json
-python scripts/peek_dataset.py            # quick summaries of the parquet
-python scripts/train_models.py out/astana_dataset.parquet out/feature_groups.json out/results \
+# modelling dataset and models (needs the Earth Engine exports in data/ and an OSM extract)
+python scripts/01_osm_to_rasters.py kazakhstan-latest-free.gpkg data/astana_osm_30m.tif
+python scripts/02_check_grid.py data/
+python scripts/03_build_dataset.py data/ out/astana_dataset.parquet
+python scripts/04_train_models.py out/astana_dataset.parquet out/feature_groups.json out/modelling \
        --configs main s2_check same_scene --seed 42
-python scripts/train_models.py out/astana_dataset.parquet out/feature_groups.json out/results_s2 \
+python scripts/04_train_models.py out/astana_dataset.parquet out/feature_groups.json out/sentinel2_check \
        --configs main_2019 s2_check --seed 42
-python scripts/case_analysis.py data/astana_case_sites.csv out/case --min-valid 0.8 --boot 5000 --seed 42
-python scripts/make_figures.py results/main results/main/figures out/results/pred_obs_sample.parquet
-python scripts/case_recheck.py data/astana_case_recheck_lst.csv data/astana_case_recheck_s2.csv out/case_recheck \
+python scripts/05_make_figures.py out/modelling out/figures out/modelling/pred_obs_sample.parquet
+
+# greening analysis (runs from this repository alone)
+python scripts/06_case_study.py data/case_study/astana_case_rings_lst.csv data/case_study/astana_case_rings_s2.csv \
+       out/case_study --min-valid 0.8 --boot 5000 --seed 42
+python scripts/07_case_extra_tests.py out/case_study/case_by_acq.csv out/case_study --boot 5000 --seed 42
+python scripts/08_case_sensitivity.py data/case_study/astana_case_sites.csv out/case_sensitivity \
        --min-valid 0.8 --boot 5000 --seed 42
-python scripts/case_extra_tests.py results/case_recheck/recheck_by_acq.csv results/case_recheck --boot 5000 --seed 42
 ```
 
-Each script prints its options with `-h`. `case_extra_tests.py` computes the additional RQ4 statistics reported in the article (one-sample Wilcoxon, Theil–Sen slope, Mann–Whitney test of 2026 against 2021–2025, Spearman check, Holm correction and the bootstrap by year).
+Each script prints its options with `-h`. `scripts/tools/peek_dataset.py` writes small CSV and text summaries of the parquet file for inspection.
 
-Notes: scripts 02 and 03 of an earlier version were superseded by `07_scene_samples.js` and removed, so the numbering jumps from 01 to 04. Code comments are partly in Russian; section numbers mentioned in them refer to an earlier draft of the article.
+The greening analysis can be reproduced from this repository alone, because its input tables are in `data/case_study/`. Rerunning steps 06–08 reproduces the tables in `results/case_study/` and `results/case_sensitivity/` to floating-point precision.
 
-## Reproducibility
+## Reproducibility notes
 
-The reported run used Python 3.9.6 on an Apple MacBook Pro with an M5-series chip and 24 GB of RAM (macOS, arm64) with the package versions in `requirements-lock.txt`. All random steps use seed 42. The full model run (`train_models.py`, three configurations, five models) took 26.2 minutes on that machine. Earth Engine results can change slightly if the data catalogue is reprocessed; the exports used in the article were made in October 2026. The case study uses summer 2026 scenes, one year beyond the 2013–2025 modelling period.
+The reported run used Python 3.9.6 on an Apple MacBook Pro (M5 Pro, 24 GB RAM, macOS arm64, no GPU) with the package versions in `requirements-lock.txt`. All random steps use seed 42. Hyperparameters were fixed in advance and not tuned. The main model run (three configurations, five models, two validation schemes) took 26.2 minutes, the Sentinel-2 run 28.5 minutes and the greening analysis less than a minute.
+
+The Earth Engine exports used in the article were made in October 2026. Because the Earth Engine catalogue and OpenStreetMap change over time, a rebuilt dataset may differ slightly from the one used in the article.
 
 ## Data
 
-The modelling dataset (`astana_dataset.parquet`, 4.4 million records, and `feature_groups.json`) is too large for this repository. It can be rebuilt in two stages: the Earth Engine scripts in `gee/` export the satellite and ancillary layers and the per-acquisition samples to Google Drive (an Earth Engine account is needed), and the Python scripts (`osm_to_rasters.py`, `check_grid.py`, `build_dataset.py`) assemble them into the table. Because the Earth Engine catalogue and OpenStreetMap change over time, a rebuilt copy may differ slightly; the exact copy used in the article is available from the author on request. The small case-study input tables are included in `results/case_inputs/`.
+The modelling dataset (`astana_dataset.parquet`, 4,449,617 pixel-acquisition records, with `feature_groups.json`) is too large for this repository and is deposited separately in Zenodo: https://doi.org/10.5281/zenodo.XXXXXXX (ODbL 1.0, because two predictors are derived from OpenStreetMap).
 
-Sources: USGS Landsat 8/9 Collection 2 Level 2, Copernicus Sentinel-2 L2A (harmonized), NASA MODIS MOD11A1/MYD11A1, ESA WorldCover v200, Copernicus DEM GLO-30, JRC GHSL, global LCZ map (Demuzere et al., 2022), OpenStreetMap contributors.
+Source data: USGS Landsat 8/9 Collection 2 Level 2, Copernicus Sentinel-2 L2A (harmonized), NASA MODIS MOD11A1/MYD11A1, ESA WorldCover v200, Copernicus DEM GLO-30, JRC GHSL, the global LCZ map (Demuzere et al., 2022) and OpenStreetMap contributors. Each keeps the licence of its provider.
 
 ## Licence
 
-Code is released under the MIT licence (see `LICENSE`). Data products keep the licences of their original providers.
+The code is released under the MIT licence (see `LICENSE`). The deposited dataset is released under ODbL 1.0, and the source data keep the licences of their providers.
+
+## Citation
+
+If you use this code, please cite the archived release (see `CITATION.cff`):
+
+> G. Khussanbayev, *Astana UHI-DSS: code for urban heat island analysis in Astana*, release v1.0, Zenodo, 2026. https://doi.org/10.5281/zenodo.YYYYYYY
 
 ## Author
 
-Gafur Khussanbayev, Astana IT University.
+Gafur Khussanbayev, School of Artificial Intelligence and Data Science, Astana IT University, Astana, Kazakhstan.

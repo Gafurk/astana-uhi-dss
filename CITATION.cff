@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite it as below."
+title: "Astana UHI-DSS: code for urban heat island analysis in Astana"
+type: software
+authors:
+  - family-names: Khussanbayev
+    given-names: Gafur
+    affiliation: "Astana IT University, Astana, Kazakhstan"
+    orcid: "https://orcid.org/0009-0004-7686-809X"
+version: "1.0.0"
+license: MIT
+repository-code: "https://github.com/Gafurk/astana-uhi-dss"
+keywords:
+  - urban heat island
+  - land surface temperature
+  - Google Earth Engine
+  - machine learning
+  - Astana
+abstract: >-
+  Google Earth Engine and Python code for modelling summer land surface
+  temperature over Astana, Kazakhstan, from open satellite data, and for a
+  before-and-after analysis of two greening projects, as reported in the
+  article "Designing a GIS-Based Decision Support System for Urban Heat Island
+  Analysis Using Big Data".
