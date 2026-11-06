@@ -5,7 +5,6 @@ __pycache__/
 .DS_Store
 
 # large data (shared separately, see README)
-data/
 osm/
 out/
 *.tif
