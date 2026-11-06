@@ -7,7 +7,7 @@ authors:
     given-names: Gafur
     affiliation: "Astana IT University, Astana, Kazakhstan"
     orcid: "https://orcid.org/0009-0004-7686-809X"
-version: "1.0.0"
+version: "1.0.1"
 license: MIT
 repository-code: "https://github.com/Gafurk/astana-uhi-dss"
 keywords:

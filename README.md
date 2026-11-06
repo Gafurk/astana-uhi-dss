@@ -112,7 +112,7 @@ The Earth Engine exports used in the article were made in October 2026. Because 
 
 ## Data
 
-The modelling dataset (`astana_dataset.parquet`, 4,449,617 pixel-acquisition records, with `feature_groups.json`) is too large for this repository and is deposited separately in Zenodo: https://doi.org/10.5281/zenodo.XXXXXXX (ODbL 1.0, because two predictors are derived from OpenStreetMap).
+The modelling dataset (`astana_dataset.parquet`, 4,449,617 pixel-acquisition records, with `feature_groups.json`) is too large for this repository and is deposited separately in Zenodo: https://doi.org/10.5281/zenodo.23988459 (ODbL 1.0, because two predictors are derived from OpenStreetMap).
 
 Source data: USGS Landsat 8/9 Collection 2 Level 2, Copernicus Sentinel-2 L2A (harmonized), NASA MODIS MOD11A1/MYD11A1, ESA WorldCover v200, Copernicus DEM GLO-30, JRC GHSL, the global LCZ map (Demuzere et al., 2022) and OpenStreetMap contributors. Each keeps the licence of its provider.
 
@@ -122,9 +122,11 @@ The code is released under the MIT licence (see `LICENSE`). The deposited datase
 
 ## Citation
 
-If you use this code, please cite the archived release (see `CITATION.cff`):
+If you use this code, please cite it as follows (see also `CITATION.cff`):
 
-> G. Khussanbayev, *Astana UHI-DSS: code for urban heat island analysis in Astana*, release v1.0, Zenodo, 2026. https://doi.org/10.5281/zenodo.YYYYYYY
+> G. Khussanbayev, *Astana UHI-DSS: code for urban heat island analysis in Astana*, Zenodo, 2026. https://doi.org/10.5281/zenodo.23988668
+
+This DOI covers all versions and resolves to the latest release; each release also has its own DOI, listed on the Zenodo page.
 
 ## Author
 
