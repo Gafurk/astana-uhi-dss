@@ -1,0 +1,11 @@
+Priority map and decision example (conference version, Section VI-A and Fig. 2).
+Command: python scripts/09_priority_map.py out/astana_dataset.parquet out/priority --groups out/feature_groups.json \
+         --districts data/astana_districts.geojson --name-field name_std
+Urban area: 300 cells of 1 km (>= 15 built-up sample pixels, 4-connected to the cell of the city centre);
+11 of them lie outside the city boundary. District polygons (OpenStreetMap, six districts since August 2024)
+only label the cells.
+Top decile 30 cells; robust priority cells 23 (top decile in >= 90% of 1000 weighting runs), median Spearman 0.99.
+Robust cells by district: Saryarka 10, Baikonur 10, Saraishyk 2, Almaty 1, Nura 0, Yesil 0.
+cells.csv: one row per cell (indicators, priority index, robustness, proposed measure, district).
+districts.csv: cells, top-decile and robust cells per district.
+scenario_cells.csv: mean RF change of the anomaly per robust cell, albedo +0.05 (d_cool) and vegetated profile (d_green).

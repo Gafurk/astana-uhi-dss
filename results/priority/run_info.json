@@ -1,0 +1,42 @@
+{
+  "parquet": "out/astana_dataset.parquet",
+  "out": "out/priority",
+  "groups": "out/feature_groups.json",
+  "districts": "data/astana_districts.geojson",
+  "name_field": "name_std",
+  "strip_suffix": " District",
+  "recent": [
+    2021,
+    2025
+  ],
+  "early": [
+    2013,
+    2016
+  ],
+  "cell_km": 1.0,
+  "min_pixels": 15,
+  "mc": 1000,
+  "albedo_delta": 0.05,
+  "max_train": 300000,
+  "trees": 300,
+  "seed": 42,
+  "plot_only": false,
+  "features": [
+    "ELEV",
+    "POP_DENS",
+    "DIST_WATER_M",
+    "DIST_GREEN_M",
+    "LOO_NDVI",
+    "LOO_NDBI",
+    "LOO_ALBEDO"
+  ],
+  "n_cells": 300,
+  "n_robust": 23,
+  "median_spearman": 0.9903195408224641,
+  "veg_profile": {
+    "LOO_NDVI": 0.5565000176429749,
+    "LOO_NDBI": -0.17059999704360962,
+    "LOO_ALBEDO": 0.15060000121593475
+  },
+  "runtime_min": 4.0
+}

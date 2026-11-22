@@ -5,7 +5,7 @@ Code and results for the article *Designing a GIS-Based Decision Support System 
 The study models summer land surface temperature (LST) over Astana, Kazakhstan, from open satellite data and tests the assumption behind the scenario layer of the planned decision support system with a before-and-after analysis of two greening projects. This repository holds:
 
 - the Google Earth Engine scripts that export the satellite and ancillary layers;
-- the Python scripts that build the dataset, train and evaluate the models, and run the greening analysis;
+- the Python scripts that build the dataset, train and evaluate the models, run the greening analysis and build the priority map;
 - the result tables and figures reported in the article.
 
 ## Study design in brief
@@ -24,15 +24,17 @@ The study models summer land surface temperature (LST) over Astana, Kazakhstan, 
 
 ```
 gee/                    Google Earth Engine Code Editor scripts (JavaScript), run in order 01-09
-scripts/                Python scripts, run in order 01-08
+scripts/                Python scripts, run in order 01-09
   tools/                helper for inspecting the dataset
 data/case_study/        input tables of the greening analysis (exported by gee/08 and gee/09)
+data/astana_districts.geojson  district boundaries of Astana (OpenStreetMap, ODbL) with Latin names in name_std
 results/
   modelling/            main model run: metrics, tests, importance, errors (RQ1-RQ3)
   sentinel2_check/      Sentinel-2 vs Landsat predictors, 2019-2023 records (RQ2)
   case_study/           greening analysis with rings and distant controls (RQ4)
   case_sensitivity/     greening sensitivity analysis: distant controls only, stricter cloud filter
-figures/                the four figures of the article
+  priority/             priority map of 1 km cells and decision example (conference version)
+figures/                the four figures of the article and the priority map
   supplementary/        additional diagnostic figures
 requirements.txt        package list
 requirements-lock.txt   exact package versions of the run reported in the article
@@ -54,6 +56,7 @@ CITATION.cff            citation metadata
 | Fig. 4 (greening sites) | `figures/fig_case_study.pdf`; `results/case_study/case_by_acq.csv`, `case_profile.csv`, `case_s2_ndvi_by_year.csv` |
 | Error analysis by LCZ and pixel group | `results/modelling/errors_by_group.csv` |
 | Greening sensitivity analysis | `results/case_sensitivity/` |
+| Priority map and decision example (conference version, Section VI-A, Fig. 2) | `figures/fig_priority_map.pdf`; `results/priority/cells.csv`, `districts.csv`, `scenario_cells.csv`, `run_info.json`, `notes.txt` |
 
 ## Running the pipeline
 
@@ -98,6 +101,12 @@ python scripts/06_case_study.py data/case_study/astana_case_rings_lst.csv data/c
 python scripts/07_case_extra_tests.py out/case_study/case_by_acq.csv out/case_study --boot 5000 --seed 42
 python scripts/08_case_sensitivity.py data/case_study/astana_case_sites.csv out/case_sensitivity \
        --min-valid 0.8 --boot 5000 --seed 42
+
+# priority map and decision example (needs the parquet; about 4 minutes and 1.5 GB of memory)
+python scripts/09_priority_map.py out/astana_dataset.parquet out/priority --groups out/feature_groups.json \
+       --districts data/astana_districts.geojson --name-field name_std
+#   redraw the figure only:  python scripts/09_priority_map.py x out/priority --plot-only \
+#                            --districts data/astana_districts.geojson --name-field name_std
 ```
 
 Each script prints its options with `-h`. `scripts/tools/peek_dataset.py` writes small CSV and text summaries of the parquet file for inspection.
@@ -114,7 +123,7 @@ The Earth Engine exports used in the article were made in October 2026. Because 
 
 The modelling dataset (`astana_dataset.parquet`, 4,449,617 pixel-acquisition records, with `feature_groups.json`) is too large for this repository and is deposited separately in Zenodo: https://doi.org/10.5281/zenodo.23988459 (ODbL 1.0, because two predictors are derived from OpenStreetMap).
 
-Source data: USGS Landsat 8/9 Collection 2 Level 2, Copernicus Sentinel-2 L2A (harmonized), NASA MODIS MOD11A1/MYD11A1, ESA WorldCover v200, Copernicus DEM GLO-30, JRC GHSL, the global LCZ map (Demuzere et al., 2022) and OpenStreetMap contributors. Each keeps the licence of its provider.
+Source data (district boundaries in `data/astana_districts.geojson` from OpenStreetMap, ODbL): USGS Landsat 8/9 Collection 2 Level 2, Copernicus Sentinel-2 L2A (harmonized), NASA MODIS MOD11A1/MYD11A1, ESA WorldCover v200, Copernicus DEM GLO-30, JRC GHSL, the global LCZ map (Demuzere et al., 2022) and OpenStreetMap contributors. Each keeps the licence of its provider.
 
 ## Licence
 
