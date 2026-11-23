@@ -1,6 +1,8 @@
 # Astana UHI-DSS
 
-Code and results for the article *Designing a GIS-Based Decision Support System for Urban Heat Island Analysis Using Big Data* (Gafur Khussanbayev, Astana IT University).
+Code and results for the paper *From Satellite Data to Urban Heat Mitigation
+Decisions: Spatial Analytics and Greening Evidence
+from Astana, Kazakhstan* (Gafur Khussanbayev, Astana IT University).
 
 The study models summer land surface temperature (LST) over Astana, Kazakhstan, from open satellite data and tests the assumption behind the scenario layer of the planned decision support system with a before-and-after analysis of two greening projects. This repository holds:
 
